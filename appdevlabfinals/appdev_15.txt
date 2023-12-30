@@ -1,0 +1,44 @@
+
+class BaseModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class UserProfile(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    bio = models.TextField()
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+class Post(BaseModel):
+    content = models.TextField()
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Post by {self.user_profile.user.username}"
+
+class Comment(BaseModel):
+    text = models.TextField()
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Comment by {self.user_profile.user.username} on {self.post}"
+
+class Like(BaseModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Like by {self.user_profile.user.username} on {self.post}"
+
+
+def post_list(request):
+    posts = Post.objects.all()
+    return render(request, 'exam_app/post_list.html', {'posts': posts})
+
